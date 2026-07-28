@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAllProgramMonths, type MonthYear } from "@/constants/savings";
-import { isMonthFullyComplete, getAllMemberSummariesForMonth } from "@/utils/calculations";
+import { getAllMemberSummariesForMonth } from "@/utils/calculations";
 import { MONTH_NAMES_SHORT_EN } from "@/constants/savings";
 import { cn } from "@/lib/utils";
 import { MonthlyDetailModal } from "@/components/dashboard/MonthlyDetailModal";
@@ -16,11 +16,44 @@ const STATUS_STYLE = {
   empty: "bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-900 dark:text-slate-600 dark:border-slate-800",
 } as const;
 
-function getMonthStatus(payments: Payment[], memberKeys: string[], my: MonthYear): keyof typeof STATUS_STYLE {
-  if (isMonthFullyComplete(payments, memberKeys, my.month, my.year)) return "complete";
+function getMonthProgress(payments: Payment[], memberKeys: string[], my: MonthYear) {
   const summaries = getAllMemberSummariesForMonth(payments, memberKeys, my.month, my.year);
-  const anyProgress = summaries.some((s) => s.totalPaid > 0);
-  return anyProgress ? "in_progress" : "empty";
+  const completed = summaries.filter((s) => s.status === "complete").length;
+  const total = memberKeys.length;
+  const status: keyof typeof STATUS_STYLE =
+    total > 0 && completed === total ? "complete" : summaries.some((s) => s.totalPaid > 0) ? "in_progress" : "empty";
+  return { completed, total, status };
+}
+
+/** Small ring gauge showing how many of the group have hit target this month. */
+function MonthRing({ completed, total }: { completed: number; total: number }) {
+  const size = 30;
+  const strokeWidth = 3;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const pct = total > 0 ? completed / total : 0;
+  const dash = circumference * pct;
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" strokeWidth={strokeWidth} className="stroke-current opacity-25" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${circumference - dash}`}
+          className="stroke-current"
+        />
+      </svg>
+      <span className="absolute text-[9px] font-bold tabular-nums">
+        {completed}/{total}
+      </span>
+    </div>
+  );
 }
 
 export function MonthlyTimeline({ payments, members }: { payments: Payment[]; members: Member[] }) {
@@ -36,19 +69,19 @@ export function MonthlyTimeline({ payments, members }: { payments: Payment[]; me
       <CardContent>
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-10">
           {months.map((my) => {
-            const status = getMonthStatus(payments, memberKeys, my);
+            const { completed, total, status } = getMonthProgress(payments, memberKeys, my);
             return (
               <button
                 key={`${my.year}-${my.month}`}
                 onClick={() => setSelected(my)}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 rounded-xl border px-2 py-2.5 text-xs font-medium transition-transform hover:scale-105 active:scale-95",
+                  "flex flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-medium transition-transform hover:scale-105 active:scale-95",
                   STATUS_STYLE[status]
                 )}
               >
                 <span>{MONTH_NAMES_SHORT_EN[my.month - 1]}</span>
                 <span className="text-[10px] opacity-80">{String(my.year).slice(2)}</span>
-                <span>{status === "complete" ? "✔" : status === "in_progress" ? "⏳" : "❌"}</span>
+                <MonthRing completed={completed} total={total} />
               </button>
             );
           })}
