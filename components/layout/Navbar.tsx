@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, PlusCircle, History, BarChart3, Users, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -48,11 +47,10 @@ export function Navbar() {
               );
             })}
           </nav>
-          <ThemeToggle />
         </div>
       </header>
 
-      {/* Mobile top bar (title + theme toggle) */}
+      {/* Mobile top bar */}
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200/70 bg-white/80 px-4 py-3 backdrop-blur-md dark:border-slate-800/70 dark:bg-slate-950/80 md:hidden">
         <Link href="/" className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-50">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-lacquer-500 to-lacquer-700 text-white">
@@ -60,7 +58,6 @@ export function Navbar() {
           </span>
           Trip Savings
         </Link>
-        <ThemeToggle />
       </header>
 
       {/* Mobile bottom tab bar */}
