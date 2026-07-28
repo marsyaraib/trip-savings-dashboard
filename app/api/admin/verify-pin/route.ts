@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { verifyPin } from "@/lib/supabase/adminPin";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -9,13 +9,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ valid: false }, { status: 400 });
   }
 
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.rpc("verify_admin_pin", { pin_attempt: pin });
-
-  if (error) {
-    console.error("PIN verification error:", error.message);
-    return NextResponse.json({ valid: false }, { status: 500 });
-  }
-
-  return NextResponse.json({ valid: data === true });
+  const isValid = await verifyPin(pin);
+  return NextResponse.json({ valid: isValid });
 }

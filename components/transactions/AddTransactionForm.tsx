@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { UploadProof } from "@/components/transactions/UploadProof";
 import { CelebrationModal } from "@/components/shared/CelebrationModal";
-import { MEMBER_NAMES, type MemberName } from "@/constants/members";
+import { getMember } from "@/constants/members";
 import { getAllProgramMonths, getCurrentMonthYear } from "@/constants/savings";
 import { cn, formatCurrency, monthNameID } from "@/lib/utils";
 import { addTransaction, addMultiMonthTransaction } from "@/services/paymentsService";
@@ -25,9 +25,9 @@ const defaultMonthYear = getCurrentMonthYear();
 
 export function AddTransactionForm() {
   const router = useRouter();
-  const { payments, refetch } = useSavingsData();
+  const { payments, members, refetch } = useSavingsData();
 
-  const [memberName, setMemberName] = React.useState<MemberName>(MEMBER_NAMES[0]);
+  const [memberKey, setMemberKey] = React.useState("");
   const [monthKey, setMonthKey] = React.useState(`${defaultMonthYear.year}-${defaultMonthYear.month}`);
   const [multiMonth, setMultiMonth] = React.useState(false);
   const [fromMonthKey, setFromMonthKey] = React.useState(`${defaultMonthYear.year}-${defaultMonthYear.month}`);
@@ -44,12 +44,19 @@ export function AddTransactionForm() {
     monthLabel: string | null;
   }>({ open: false, achievements: [], monthLabel: null });
 
+  React.useEffect(() => {
+    if (!memberKey && members.length > 0) {
+      setMemberKey(members[0].key);
+    }
+  }, [members, memberKey]);
+
   const fromIdx = programMonths.findIndex((m) => `${m.year}-${m.month}` === fromMonthKey);
   const toIdx = programMonths.findIndex((m) => `${m.year}-${m.month}` === toMonthKey);
   const selectedMonths = fromIdx >= 0 && toIdx >= fromIdx ? programMonths.slice(fromIdx, toIdx + 1) : [];
 
   const numericAmount = Number(amount.replace(/[^0-9]/g, ""));
   const totalMultiMonthAmount = numericAmount * selectedMonths.length;
+  const allMemberKeys = members.map((m) => m.key);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -57,6 +64,11 @@ export function AddTransactionForm() {
       toast.error(multiMonth ? "Nominal per bulan harus lebih dari 0." : "Nominal pembayaran harus lebih dari 0.");
       return;
     }
+    if (!memberKey) {
+      toast.error("Pilih nama anggota terlebih dahulu.");
+      return;
+    }
+    const memberDisplayName = getMember(members, memberKey)?.displayName ?? memberKey;
 
     setSubmitting(true);
     try {
@@ -69,14 +81,16 @@ export function AddTransactionForm() {
 
         const result = await addMultiMonthTransaction(
           {
-            memberName,
+            memberKey,
+            memberDisplayName,
             months: selectedMonths,
             amountPerMonth: numericAmount,
             paymentDate,
             note,
             proofFile,
           },
-          payments
+          payments,
+          allMemberKeys
         );
 
         toast.success(`Pembayaran ${selectedMonths.length} bulan berhasil ditambahkan!`);
@@ -103,7 +117,8 @@ export function AddTransactionForm() {
       const [yearStr, monthStr] = monthKey.split("-");
       const result = await addTransaction(
         {
-          memberName,
+          memberKey,
+          memberDisplayName,
           paymentMonth: Number(monthStr),
           paymentYear: Number(yearStr),
           paymentDate,
@@ -111,7 +126,8 @@ export function AddTransactionForm() {
           note,
           proofFile,
         },
-        payments
+        payments,
+        allMemberKeys
       );
 
       toast.success("Pembayaran berhasil ditambahkan!");
@@ -180,14 +196,14 @@ export function AddTransactionForm() {
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>Nama</Label>
-                <Select value={memberName} onValueChange={(v) => setMemberName(v as MemberName)}>
+                <Select value={memberKey} onValueChange={setMemberKey}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {MEMBER_NAMES.map((name) => (
-                      <SelectItem key={name} value={name}>
-                        {name}
+                    {members.map((m) => (
+                      <SelectItem key={m.key} value={m.key}>
+                        {m.displayName}
                       </SelectItem>
                     ))}
                   </SelectContent>

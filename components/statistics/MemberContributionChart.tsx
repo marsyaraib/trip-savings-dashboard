@@ -2,15 +2,15 @@
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, LabelList } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MEMBERS } from "@/constants/members";
+import type { Member } from "@/constants/members";
 import { formatCurrency, formatCurrencyCompact } from "@/lib/utils";
 import { totalByMember } from "@/utils/calculations";
 import type { Payment } from "@/types";
 
-export function MemberContributionChart({ payments }: { payments: Payment[] }) {
-  const data = MEMBERS.map((m) => ({
-    name: m.name,
-    total: totalByMember(payments, m.name),
+export function MemberContributionChart({ payments, members }: { payments: Payment[]; members: Member[] }) {
+  const data = members.map((m) => ({
+    name: m.displayName,
+    total: totalByMember(payments, m.key),
     fill: m.hex,
   }));
 

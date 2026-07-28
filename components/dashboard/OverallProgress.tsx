@@ -4,14 +4,13 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency, clampPercentage } from "@/lib/utils";
-import { TARGET_GROUP } from "@/constants/savings";
 import type { Payment } from "@/types";
 import { sumPayments } from "@/utils/calculations";
 
-export function OverallProgress({ payments }: { payments: Payment[] }) {
+export function OverallProgress({ payments, targetGroup }: { payments: Payment[]; targetGroup: number }) {
   const collected = sumPayments(payments);
-  const remaining = Math.max(0, TARGET_GROUP - collected);
-  const percentage = clampPercentage((collected / TARGET_GROUP) * 100);
+  const remaining = Math.max(0, targetGroup - collected);
+  const percentage = targetGroup > 0 ? clampPercentage((collected / targetGroup) * 100) : 0;
 
   return (
     <Card>
@@ -39,7 +38,7 @@ export function OverallProgress({ payments }: { payments: Payment[] }) {
           <div>
             <p className="text-[11px] uppercase tracking-wide text-slate-400">Target</p>
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-              {formatCurrency(TARGET_GROUP)}
+              {formatCurrency(targetGroup)}
             </p>
           </div>
           <div className="border-x border-slate-200 dark:border-slate-800">

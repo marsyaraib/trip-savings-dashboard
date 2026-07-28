@@ -5,14 +5,15 @@ import { getAllMemberSummariesForMonth } from "@/utils/calculations";
 import { monthNameID } from "@/lib/utils";
 import { getCurrentMonthYear } from "@/constants/savings";
 import type { Payment } from "@/types";
-import { getMember } from "@/constants/members";
+import { getMember, type Member } from "@/constants/members";
 
 const STATUS_ICON = { complete: "✔️", in_progress: "⏳", empty: "❌" } as const;
 
-export function MonthlyStatusCard({ payments }: { payments: Payment[] }) {
+export function MonthlyStatusCard({ payments, members }: { payments: Payment[]; members: Member[] }) {
   const { month, year } = getCurrentMonthYear();
-  const summaries = getAllMemberSummariesForMonth(payments, month, year);
-  const allComplete = summaries.every((s) => s.status === "complete");
+  const memberKeys = members.map((m) => m.key);
+  const summaries = getAllMemberSummariesForMonth(payments, memberKeys, month, year);
+  const allComplete = summaries.length > 0 && summaries.every((s) => s.status === "complete");
 
   return (
     <Card>
@@ -24,14 +25,14 @@ export function MonthlyStatusCard({ payments }: { payments: Payment[] }) {
       <CardContent>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {summaries.map((s) => {
-            const member = getMember(s.member_name);
+            const member = getMember(members, s.member_name);
             return (
               <div
                 key={s.member_name}
                 className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-3 dark:border-slate-800 dark:bg-slate-900/50"
               >
                 <span className={`text-xs font-medium bg-gradient-to-br ${member?.colorClass} bg-clip-text text-transparent`}>
-                  {s.member_name}
+                  {member?.displayName ?? s.member_name}
                 </span>
                 <span className="text-lg">{STATUS_ICON[s.status]}</span>
               </div>

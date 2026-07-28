@@ -1,19 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { verifyPin } from "@/lib/supabase/adminPin";
 import type { Database } from "@/lib/supabase/database.types";
 
 type PaymentUpdate = Database["public"]["Tables"]["payments"]["Update"];
-
-async function verifyPin(pin: unknown): Promise<boolean> {
-  if (typeof pin !== "string" || pin.length === 0) return false;
-  const admin = getSupabaseAdmin();
-  const { data, error } = await admin.rpc("verify_admin_pin", { pin_attempt: pin });
-  if (error) {
-    console.error("PIN verification error:", error.message);
-    return false;
-  }
-  return data === true;
-}
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

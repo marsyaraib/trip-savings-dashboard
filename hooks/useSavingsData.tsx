@@ -4,11 +4,14 @@ import * as React from "react";
 import { supabase } from "@/lib/supabase/client";
 import { fetchAllPayments } from "@/services/paymentsService";
 import { fetchActivityLogs } from "@/services/activityService";
+import { fetchAllMembers } from "@/services/membersService";
 import type { Payment, ActivityLog } from "@/types";
+import type { Member } from "@/constants/members";
 
 interface SavingsDataContextValue {
   payments: Payment[];
   activityLogs: ActivityLog[];
+  members: Member[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
@@ -21,15 +24,17 @@ const SavingsDataContext = React.createContext<SavingsDataContextValue | null>(n
 export function SavingsDataProvider({ children }: { children: React.ReactNode }) {
   const [payments, setPayments] = React.useState<Payment[]>([]);
   const [activityLogs, setActivityLogs] = React.useState<ActivityLog[]>([]);
+  const [members, setMembers] = React.useState<Member[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
   const refetch = React.useCallback(async () => {
     try {
       setError(null);
-      const [p, a] = await Promise.all([fetchAllPayments(), fetchActivityLogs()]);
+      const [p, a, m] = await Promise.all([fetchAllPayments(), fetchActivityLogs(), fetchAllMembers()]);
       setPayments(p);
       setActivityLogs(a);
+      setMembers(m);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal memuat data.");
     } finally {
@@ -47,6 +52,9 @@ export function SavingsDataProvider({ children }: { children: React.ReactNode })
         refetch();
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "activity_logs" }, () => {
+        refetch();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "members" }, () => {
         refetch();
       })
       .subscribe();
@@ -67,6 +75,7 @@ export function SavingsDataProvider({ children }: { children: React.ReactNode })
   const value: SavingsDataContextValue = {
     payments,
     activityLogs,
+    members,
     isLoading,
     error,
     refetch,

@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
 import type { Payment, NewPayment, NewActivityLog, AchievementEarned } from "@/types";
-import type { MemberName } from "@/constants/members";
 import { formatCurrency, monthNameID } from "@/lib/utils";
 import { totalByMember, isMonthFullyComplete } from "@/utils/calculations";
 import { detectNewMilestones } from "@/utils/achievements";
@@ -18,7 +17,8 @@ export async function fetchAllPayments(): Promise<Payment[]> {
 }
 
 export interface AddTransactionInput {
-  memberName: MemberName;
+  memberKey: string;
+  memberDisplayName: string;
   paymentMonth: number;
   paymentYear: number;
   paymentDate: string;
@@ -43,18 +43,21 @@ export interface AddTransactionResult {
  *
  * `existingPayments` is the caller's current in-memory list (used purely to
  * compute deltas quickly); it is not required to be perfectly fresh.
+ * `allMemberKeys` is the full current member list, needed to know whether
+ * a month is complete for the *whole* group, not just this one member.
  */
 export async function addTransaction(
   input: AddTransactionInput,
-  existingPayments: Payment[]
+  existingPayments: Payment[],
+  allMemberKeys: string[]
 ): Promise<AddTransactionResult> {
   let proofUrl: string | null = null;
   if (input.proofFile) {
-    proofUrl = await uploadProofFile(input.proofFile, input.memberName);
+    proofUrl = await uploadProofFile(input.proofFile, input.memberKey);
   }
 
   const newRow: NewPayment = {
-    member_name: input.memberName,
+    member_name: input.memberKey,
     payment_month: input.paymentMonth,
     payment_year: input.paymentYear,
     payment_date: input.paymentDate,
@@ -67,17 +70,19 @@ export async function addTransaction(
   if (error) throw new Error(`Gagal menyimpan transaksi: ${error.message}`);
   const payment = data as Payment;
 
-  const previousTotal = totalByMember(existingPayments, input.memberName);
+  const previousTotal = totalByMember(existingPayments, input.memberKey);
   const newTotal = previousTotal + input.amount;
-  const achievements = detectNewMilestones(previousTotal, newTotal, input.memberName);
+  const achievements = detectNewMilestones(previousTotal, newTotal, input.memberKey, input.memberDisplayName);
 
   const wasMonthCompleteBefore = isMonthFullyComplete(
     existingPayments,
+    allMemberKeys,
     input.paymentMonth,
     input.paymentYear
   );
   const isMonthCompleteAfter = isMonthFullyComplete(
     [...existingPayments, payment],
+    allMemberKeys,
     input.paymentMonth,
     input.paymentYear
   );
@@ -85,19 +90,19 @@ export async function addTransaction(
 
   const logs: NewActivityLog[] = [
     {
-      activity: `${input.memberName} menambahkan ${formatCurrency(input.amount)} untuk bulan ${monthNameID(
+      activity: `${input.memberDisplayName} menambahkan ${formatCurrency(input.amount)} untuk bulan ${monthNameID(
         input.paymentMonth
       )} ${input.paymentYear}`,
       activity_type: "payment_added",
-      member_name: input.memberName,
+      member_name: input.memberKey,
     },
   ];
 
   if (proofUrl) {
     logs.push({
-      activity: `${input.memberName} mengunggah bukti transfer`,
+      activity: `${input.memberDisplayName} mengunggah bukti transfer`,
       activity_type: "proof_uploaded",
-      member_name: input.memberName,
+      member_name: input.memberKey,
     });
   }
 
@@ -105,7 +110,7 @@ export async function addTransaction(
     logs.push({
       activity: a.label,
       activity_type: a.badge === "🏆" ? "target_completed" : "milestone_reached",
-      member_name: input.memberName,
+      member_name: input.memberKey,
     });
   }
 
@@ -125,7 +130,8 @@ export async function addTransaction(
 }
 
 export interface AddMultiMonthTransactionInput {
-  memberName: MemberName;
+  memberKey: string;
+  memberDisplayName: string;
   months: { month: number; year: number }[];
   amountPerMonth: number;
   paymentDate: string;
@@ -147,11 +153,12 @@ export interface AddMultiMonthTransactionResult {
  */
 export async function addMultiMonthTransaction(
   input: AddMultiMonthTransactionInput,
-  existingPayments: Payment[]
+  existingPayments: Payment[],
+  allMemberKeys: string[]
 ): Promise<AddMultiMonthTransactionResult> {
   let proofUrl: string | null = null;
   if (input.proofFile) {
-    proofUrl = await uploadProofFile(input.proofFile, input.memberName);
+    proofUrl = await uploadProofFile(input.proofFile, input.memberKey);
   }
 
   let runningPayments = [...existingPayments];
@@ -162,7 +169,7 @@ export async function addMultiMonthTransaction(
 
   for (const { month, year } of input.months) {
     const newRow: NewPayment = {
-      member_name: input.memberName,
+      member_name: input.memberKey,
       payment_month: month,
       payment_year: year,
       payment_date: input.paymentDate,
@@ -178,29 +185,29 @@ export async function addMultiMonthTransaction(
     const payment = data as Payment;
     insertedPayments.push(payment);
 
-    const previousTotal = totalByMember(runningPayments, input.memberName);
+    const previousTotal = totalByMember(runningPayments, input.memberKey);
     const newTotal = previousTotal + input.amountPerMonth;
-    const newAchievements = detectNewMilestones(previousTotal, newTotal, input.memberName);
+    const newAchievements = detectNewMilestones(previousTotal, newTotal, input.memberKey, input.memberDisplayName);
     achievements.push(...newAchievements);
 
-    const wasMonthCompleteBefore = isMonthFullyComplete(runningPayments, month, year);
-    const isMonthCompleteAfter = isMonthFullyComplete([...runningPayments, payment], month, year);
+    const wasMonthCompleteBefore = isMonthFullyComplete(runningPayments, allMemberKeys, month, year);
+    const isMonthCompleteAfter = isMonthFullyComplete([...runningPayments, payment], allMemberKeys, month, year);
     const monthJustCompleted = !wasMonthCompleteBefore && isMonthCompleteAfter;
     if (monthJustCompleted) monthsJustCompleted.push({ month, year });
 
     logs.push({
-      activity: `${input.memberName} menambahkan ${formatCurrency(input.amountPerMonth)} untuk bulan ${monthNameID(
-        month
-      )} ${year}`,
+      activity: `${input.memberDisplayName} menambahkan ${formatCurrency(
+        input.amountPerMonth
+      )} untuk bulan ${monthNameID(month)} ${year}`,
       activity_type: "payment_added",
-      member_name: input.memberName,
+      member_name: input.memberKey,
     });
 
     for (const a of newAchievements) {
       logs.push({
         activity: a.label,
         activity_type: a.badge === "🏆" ? "target_completed" : "milestone_reached",
-        member_name: input.memberName,
+        member_name: input.memberKey,
       });
     }
 
@@ -217,9 +224,9 @@ export async function addMultiMonthTransaction(
 
   if (proofUrl) {
     logs.push({
-      activity: `${input.memberName} mengunggah bukti transfer untuk ${input.months.length} bulan sekaligus`,
+      activity: `${input.memberDisplayName} mengunggah bukti transfer untuk ${input.months.length} bulan sekaligus`,
       activity_type: "proof_uploaded",
-      member_name: input.memberName,
+      member_name: input.memberKey,
     });
   }
 

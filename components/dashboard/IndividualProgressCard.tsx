@@ -5,12 +5,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency, clampPercentage } from "@/lib/utils";
-import { getMember } from "@/constants/members";
+import { getMember, type Member } from "@/constants/members";
 import { STATUS_EMOJI, STATUS_LABEL } from "@/utils/calculations";
 import type { MemberSummary } from "@/types";
 
-export function IndividualProgressCard({ summary }: { summary: MemberSummary }) {
-  const member = getMember(summary.member_name);
+export function IndividualProgressCard({ summary, members }: { summary: MemberSummary; members: Member[] }) {
+  const member = getMember(members, summary.member_name);
   const percentage = clampPercentage(summary.percentage);
 
   return (
@@ -21,7 +21,9 @@ export function IndividualProgressCard({ summary }: { summary: MemberSummary }) 
             <AvatarFallback className={member?.colorClass}>{member?.initials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold text-slate-900 dark:text-slate-50">{summary.member_name}</p>
+            <p className="truncate font-semibold text-slate-900 dark:text-slate-50">
+              {member?.displayName ?? summary.member_name}
+            </p>
             <p className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
               {STATUS_EMOJI[summary.status]} {STATUS_LABEL[summary.status]}
             </p>

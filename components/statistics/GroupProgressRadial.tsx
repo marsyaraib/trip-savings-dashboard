@@ -2,20 +2,19 @@
 
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TARGET_GROUP } from "@/constants/savings";
 import { formatCurrency, clampPercentage } from "@/lib/utils";
 import { sumPayments } from "@/utils/calculations";
 import type { Payment } from "@/types";
 
-export function GroupProgressRadial({ payments }: { payments: Payment[] }) {
+export function GroupProgressRadial({ payments, targetGroup }: { payments: Payment[]; targetGroup: number }) {
   const collected = sumPayments(payments);
-  const percentage = clampPercentage((collected / TARGET_GROUP) * 100);
+  const percentage = targetGroup > 0 ? clampPercentage((collected / targetGroup) * 100) : 0;
   const data = [{ name: "progress", value: percentage, fill: "#10b981" }];
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Progress Menuju Rp40.000.000</CardTitle>
+        <CardTitle>Progress Menuju {formatCurrency(targetGroup)}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="relative h-72 w-full">
@@ -36,7 +35,7 @@ export function GroupProgressRadial({ payments }: { payments: Payment[] }) {
               {percentage.toFixed(1)}%
             </span>
             <span className="mt-1 text-xs text-slate-400">{formatCurrency(collected)}</span>
-            <span className="text-[11px] text-slate-400">dari {formatCurrency(TARGET_GROUP)}</span>
+            <span className="text-[11px] text-slate-400">dari {formatCurrency(targetGroup)}</span>
           </div>
         </div>
       </CardContent>

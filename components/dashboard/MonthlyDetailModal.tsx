@@ -9,19 +9,21 @@ import {
 } from "@/components/ui/dialog";
 import { getAllMemberSummariesForMonth } from "@/utils/calculations";
 import { formatCurrency, monthNameID } from "@/lib/utils";
-import { getMember } from "@/constants/members";
+import { getMember, type Member } from "@/constants/members";
 import type { Payment } from "@/types";
 import type { MonthYear } from "@/constants/savings";
 
 interface MonthlyDetailModalProps {
   monthYear: MonthYear | null;
   payments: Payment[];
+  members: Member[];
   onOpenChange: (open: boolean) => void;
 }
 
-export function MonthlyDetailModal({ monthYear, payments, onOpenChange }: MonthlyDetailModalProps) {
+export function MonthlyDetailModal({ monthYear, payments, members, onOpenChange }: MonthlyDetailModalProps) {
+  const memberKeys = members.map((m) => m.key);
   const summaries = monthYear
-    ? getAllMemberSummariesForMonth(payments, monthYear.month, monthYear.year)
+    ? getAllMemberSummariesForMonth(payments, memberKeys, monthYear.month, monthYear.year)
     : [];
 
   return (
@@ -36,7 +38,7 @@ export function MonthlyDetailModal({ monthYear, payments, onOpenChange }: Monthl
 
         <div className="space-y-2">
           {summaries.map((s) => {
-            const member = getMember(s.member_name);
+            const member = getMember(members, s.member_name);
             return (
               <div
                 key={s.member_name}
@@ -44,7 +46,7 @@ export function MonthlyDetailModal({ monthYear, payments, onOpenChange }: Monthl
               >
                 <div>
                   <p className={`font-medium bg-gradient-to-br ${member?.colorClass} bg-clip-text text-transparent`}>
-                    {s.member_name}
+                    {member?.displayName ?? s.member_name}
                   </p>
                   <p className="text-xs text-slate-400">{s.transactionCount} transaksi</p>
                 </div>

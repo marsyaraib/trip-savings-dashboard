@@ -8,6 +8,7 @@ import { MONTH_NAMES_SHORT_EN } from "@/constants/savings";
 import { cn } from "@/lib/utils";
 import { MonthlyDetailModal } from "@/components/dashboard/MonthlyDetailModal";
 import type { Payment } from "@/types";
+import type { Member } from "@/constants/members";
 
 const STATUS_STYLE = {
   complete: "bg-emerald-500 text-white border-emerald-500",
@@ -15,15 +16,16 @@ const STATUS_STYLE = {
   empty: "bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-900 dark:text-slate-600 dark:border-slate-800",
 } as const;
 
-function getMonthStatus(payments: Payment[], my: MonthYear): keyof typeof STATUS_STYLE {
-  if (isMonthFullyComplete(payments, my.month, my.year)) return "complete";
-  const summaries = getAllMemberSummariesForMonth(payments, my.month, my.year);
+function getMonthStatus(payments: Payment[], memberKeys: string[], my: MonthYear): keyof typeof STATUS_STYLE {
+  if (isMonthFullyComplete(payments, memberKeys, my.month, my.year)) return "complete";
+  const summaries = getAllMemberSummariesForMonth(payments, memberKeys, my.month, my.year);
   const anyProgress = summaries.some((s) => s.totalPaid > 0);
   return anyProgress ? "in_progress" : "empty";
 }
 
-export function MonthlyTimeline({ payments }: { payments: Payment[] }) {
+export function MonthlyTimeline({ payments, members }: { payments: Payment[]; members: Member[] }) {
   const months = getAllProgramMonths();
+  const memberKeys = members.map((m) => m.key);
   const [selected, setSelected] = React.useState<MonthYear | null>(null);
 
   return (
@@ -34,7 +36,7 @@ export function MonthlyTimeline({ payments }: { payments: Payment[] }) {
       <CardContent>
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-10">
           {months.map((my) => {
-            const status = getMonthStatus(payments, my);
+            const status = getMonthStatus(payments, memberKeys, my);
             return (
               <button
                 key={`${my.year}-${my.month}`}
@@ -56,6 +58,7 @@ export function MonthlyTimeline({ payments }: { payments: Payment[] }) {
       <MonthlyDetailModal
         monthYear={selected}
         payments={payments}
+        members={members}
         onOpenChange={(open) => !open && setSelected(null)}
       />
     </Card>

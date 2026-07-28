@@ -7,10 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { MEMBER_NAMES, type MemberName } from "@/constants/members";
 import { getAllProgramMonths } from "@/constants/savings";
 import { monthNameID } from "@/lib/utils";
 import { editPayment } from "@/services/paymentsService";
+import { useSavingsData } from "@/hooks/useSavingsData";
 import type { Payment } from "@/types";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -25,7 +25,8 @@ interface EditTransactionDialogProps {
 }
 
 export function EditTransactionDialog({ payment, pin, onOpenChange, onSaved }: EditTransactionDialogProps) {
-  const [memberName, setMemberName] = React.useState<MemberName>("Fafa");
+  const { members } = useSavingsData();
+  const [memberName, setMemberName] = React.useState("");
   const [monthKey, setMonthKey] = React.useState("");
   const [paymentDate, setPaymentDate] = React.useState("");
   const [amount, setAmount] = React.useState("");
@@ -83,14 +84,14 @@ export function EditTransactionDialog({ payment, pin, onOpenChange, onSaved }: E
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Nama</Label>
-              <Select value={memberName} onValueChange={(v) => setMemberName(v as MemberName)}>
+              <Select value={memberName} onValueChange={setMemberName}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {MEMBER_NAMES.map((name) => (
-                    <SelectItem key={name} value={name}>
-                      {name}
+                  {members.map((m) => (
+                    <SelectItem key={m.key} value={m.key}>
+                      {m.displayName}
                     </SelectItem>
                   ))}
                 </SelectContent>

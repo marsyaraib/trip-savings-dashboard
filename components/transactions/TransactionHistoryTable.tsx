@@ -24,7 +24,7 @@ interface TransactionHistoryTableProps {
 type PendingAction = { type: "edit" | "delete"; payment: Payment } | null;
 
 export function TransactionHistoryTable({ payments, filter }: TransactionHistoryTableProps) {
-  const { refetch, applyOptimisticDelete, applyOptimisticRestore } = useSavingsData();
+  const { members, refetch, applyOptimisticDelete, applyOptimisticRestore } = useSavingsData();
 
   const [pending, setPending] = React.useState<PendingAction>(null);
   const [pinLoading, setPinLoading] = React.useState(false);
@@ -88,7 +88,7 @@ export function TransactionHistoryTable({ payments, filter }: TransactionHistory
     pendingDeleteTimers.current.set(payment.id, timer);
 
     toast("Transaksi dihapus", {
-      description: `${payment.member_name} · ${formatCurrency(payment.amount)}`,
+      description: `${getMember(members, payment.member_name)?.displayName ?? payment.member_name} · ${formatCurrency(payment.amount)}`,
       duration: UNDO_WINDOW_MS,
       action: {
         label: "Undo",
@@ -125,9 +125,9 @@ export function TransactionHistoryTable({ payments, filter }: TransactionHistory
               <div className="flex items-start justify-between">
                 <div>
                   <p
-                    className={`font-semibold bg-gradient-to-br ${getMember(p.member_name)?.colorClass} bg-clip-text text-transparent`}
+                    className={`font-semibold bg-gradient-to-br ${getMember(members, p.member_name)?.colorClass} bg-clip-text text-transparent`}
                   >
-                    {p.member_name}
+                    {getMember(members, p.member_name)?.displayName ?? p.member_name}
                   </p>
                   <p className="text-xs text-slate-400">
                     {formatDateID(p.payment_date)} &middot; {monthNameID(p.payment_month)} {p.payment_year}
@@ -168,9 +168,9 @@ export function TransactionHistoryTable({ payments, filter }: TransactionHistory
                 <tr key={p.id} className="border-b border-slate-50 last:border-0 dark:border-slate-900">
                   <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{formatDateID(p.payment_date)}</td>
                   <td
-                    className={`px-4 py-3 font-medium bg-gradient-to-br ${getMember(p.member_name)?.colorClass} bg-clip-text text-transparent`}
+                    className={`px-4 py-3 font-medium bg-gradient-to-br ${getMember(members, p.member_name)?.colorClass} bg-clip-text text-transparent`}
                   >
-                    {p.member_name}
+                    {getMember(members, p.member_name)?.displayName ?? p.member_name}
                   </td>
                   <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                     {monthNameID(p.payment_month)} {p.payment_year}

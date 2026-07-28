@@ -1,12 +1,12 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getMember } from "@/constants/members";
+import { getMember, type Member } from "@/constants/members";
 import { getEarnedBadges } from "@/utils/achievements";
 import type { MemberSummary } from "@/types";
 import { motion } from "framer-motion";
 
-export function AchievementBadges({ summaries }: { summaries: MemberSummary[] }) {
+export function AchievementBadges({ summaries, members }: { summaries: MemberSummary[]; members: Member[] }) {
   return (
     <Card>
       <CardHeader>
@@ -14,14 +14,14 @@ export function AchievementBadges({ summaries }: { summaries: MemberSummary[] })
       </CardHeader>
       <CardContent className="space-y-4">
         {summaries.map((summary) => {
-          const member = getMember(summary.member_name);
+          const member = getMember(members, summary.member_name);
           const badges = getEarnedBadges(summary.totalSaved);
           return (
             <div key={summary.member_name} className="flex items-center gap-3">
               <span
                 className={`w-16 shrink-0 truncate text-xs font-semibold bg-gradient-to-br ${member?.colorClass} bg-clip-text text-transparent`}
               >
-                {summary.member_name}
+                {member?.displayName ?? summary.member_name}
               </span>
               <div className="flex flex-1 flex-wrap gap-1.5">
                 {badges.length === 0 ? (

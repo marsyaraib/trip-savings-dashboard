@@ -12,10 +12,11 @@ import { DashboardSkeleton } from "@/components/shared/DashboardSkeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { useSavingsData } from "@/hooks/useSavingsData";
 import { getAllMemberSummaries } from "@/utils/calculations";
+import { getTargetGroup } from "@/constants/savings";
 import { AlertCircle } from "lucide-react";
 
 export default function DashboardPage() {
-  const { payments, activityLogs, isLoading, error } = useSavingsData();
+  const { payments, activityLogs, members, isLoading, error } = useSavingsData();
 
   if (isLoading) return <DashboardSkeleton />;
 
@@ -29,34 +30,36 @@ export default function DashboardPage() {
     );
   }
 
-  const summaries = getAllMemberSummaries(payments);
+  const memberKeys = members.map((m) => m.key);
+  const summaries = getAllMemberSummaries(payments, memberKeys);
+  const targetGroup = getTargetGroup(members.length);
 
   return (
     <div className="space-y-6">
-      <HeroSection />
+      <HeroSection members={members} />
 
       <div className="flex justify-end">
         <ExportExcelButton />
       </div>
 
-      <OverallProgress payments={payments} />
+      <OverallProgress payments={payments} targetGroup={targetGroup} />
 
       <div>
         <h2 className="mb-3 text-lg font-semibold text-slate-900 dark:text-slate-50">Progress Individu</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {summaries.map((s) => (
-            <IndividualProgressCard key={s.member_name} summary={s} />
+            <IndividualProgressCard key={s.member_name} summary={s} members={members} />
           ))}
         </div>
       </div>
 
-      <MonthlyStatusCard payments={payments} />
+      <MonthlyStatusCard payments={payments} members={members} />
 
-      <MonthlyTimeline payments={payments} />
+      <MonthlyTimeline payments={payments} members={members} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <ActivityFeed logs={activityLogs} />
-        <AchievementBadges summaries={summaries} />
+        <AchievementBadges summaries={summaries} members={members} />
       </div>
     </div>
   );

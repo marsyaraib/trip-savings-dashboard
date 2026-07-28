@@ -9,7 +9,7 @@ import { useSavingsData } from "@/hooks/useSavingsData";
 import type { PaginationFilter } from "@/types";
 
 export default function HistoryPage() {
-  const { payments, isLoading } = useSavingsData();
+  const { payments, members, isLoading } = useSavingsData();
   const [filter, setFilter] = React.useState<PaginationFilter>({
     memberName: "all",
     month: "all",
@@ -25,7 +25,7 @@ export default function HistoryPage() {
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-50">Riwayat Transaksi</h1>
         <ExportExcelButton />
       </div>
-      <SearchFilterBar filter={filter} onChange={setFilter} />
+      <SearchFilterBar filter={filter} onChange={setFilter} members={members} />
       <TransactionHistoryTable payments={payments} filter={filter} />
     </div>
   );

@@ -77,6 +77,42 @@ export interface Database {
         };
         Relationships: [];
       };
+      members: {
+        Row: {
+          key: string;
+          display_name: string;
+          photo_url: string | null;
+          initials: string;
+          color_class: string;
+          ring_class: string;
+          hex: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          key: string;
+          display_name: string;
+          photo_url?: string | null;
+          initials: string;
+          color_class: string;
+          ring_class: string;
+          hex: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          key?: string;
+          display_name?: string;
+          photo_url?: string | null;
+          initials?: string;
+          color_class?: string;
+          ring_class?: string;
+          hex?: string;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

@@ -3,18 +3,19 @@
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { MEMBER_NAMES } from "@/constants/members";
+import type { Member } from "@/constants/members";
 import { MONTH_NAMES_ID, START_YEAR, END_YEAR } from "@/constants/savings";
 import type { PaginationFilter } from "@/types";
 
 interface SearchFilterBarProps {
   filter: PaginationFilter;
   onChange: (filter: PaginationFilter) => void;
+  members: Member[];
 }
 
 const YEARS = Array.from({ length: END_YEAR - START_YEAR + 1 }, (_, i) => START_YEAR + i);
 
-export function SearchFilterBar({ filter, onChange }: SearchFilterBarProps) {
+export function SearchFilterBar({ filter, onChange, members }: SearchFilterBarProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
       <div className="relative flex-1">
@@ -36,9 +37,9 @@ export function SearchFilterBar({ filter, onChange }: SearchFilterBarProps) {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Semua Nama</SelectItem>
-          {MEMBER_NAMES.map((name) => (
-            <SelectItem key={name} value={name}>
-              {name}
+          {members.map((m) => (
+            <SelectItem key={m.key} value={m.key}>
+              {m.displayName}
             </SelectItem>
           ))}
         </SelectContent>

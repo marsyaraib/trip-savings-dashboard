@@ -1,4 +1,3 @@
-import type { MemberName } from "@/constants/members";
 import { MILESTONES, FIXED_AMOUNT_ACHIEVEMENT, COMPLETION_ACHIEVEMENT, TARGET_PER_PERSON } from "@/constants/savings";
 import type { AchievementEarned } from "@/types";
 
@@ -36,7 +35,8 @@ export function getEarnedBadges(totalSaved: number): EarnedBadge[] {
 export function detectNewMilestones(
   previousTotal: number,
   newTotal: number,
-  member: MemberName
+  memberKey: string,
+  memberDisplayName: string
 ): AchievementEarned[] {
   const earned: AchievementEarned[] = [];
 
@@ -44,29 +44,29 @@ export function detectNewMilestones(
     const threshold = milestone.fraction * TARGET_PER_PERSON;
     if (previousTotal < threshold && newTotal >= threshold) {
       earned.push({
-        id: `${member}-milestone-${milestone.fraction}`,
+        id: `${memberKey}-milestone-${milestone.fraction}`,
         badge: milestone.badge,
-        label: `${member} mencapai ${milestone.label} dari target pribadi!`,
-        member_name: member,
+        label: `${memberDisplayName} mencapai ${milestone.label} dari target pribadi!`,
+        member_name: memberKey,
       });
     }
   }
 
   if (previousTotal < FIXED_AMOUNT_ACHIEVEMENT.amount && newTotal >= FIXED_AMOUNT_ACHIEVEMENT.amount) {
     earned.push({
-      id: `${member}-fixed-5jt`,
+      id: `${memberKey}-fixed-5jt`,
       badge: FIXED_AMOUNT_ACHIEVEMENT.badge,
-      label: `${member} mencapai Rp5.000.000!`,
-      member_name: member,
+      label: `${memberDisplayName} mencapai Rp5.000.000!`,
+      member_name: memberKey,
     });
   }
 
   if (previousTotal < TARGET_PER_PERSON && newTotal >= TARGET_PER_PERSON) {
     earned.push({
-      id: `${member}-completed`,
+      id: `${memberKey}-completed`,
       badge: COMPLETION_ACHIEVEMENT.badge,
-      label: `${member} menyelesaikan target pribadi Rp10.000.000!`,
-      member_name: member,
+      label: `${memberDisplayName} menyelesaikan target pribadi Rp10.000.000!`,
+      member_name: memberKey,
     });
   }
 

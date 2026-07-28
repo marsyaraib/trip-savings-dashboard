@@ -2,17 +2,19 @@
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MEMBERS } from "@/constants/members";
+import type { Member } from "@/constants/members";
 import { formatCurrency } from "@/lib/utils";
 import { totalByMember } from "@/utils/calculations";
 import type { Payment } from "@/types";
 
-export function ContributionPieChart({ payments }: { payments: Payment[] }) {
-  const data = MEMBERS.map((m) => ({
-    name: m.name,
-    value: totalByMember(payments, m.name),
-    fill: m.hex,
-  })).filter((d) => d.value > 0);
+export function ContributionPieChart({ payments, members }: { payments: Payment[]; members: Member[] }) {
+  const data = members
+    .map((m) => ({
+      name: m.displayName,
+      value: totalByMember(payments, m.key),
+      fill: m.hex,
+    }))
+    .filter((d) => d.value > 0);
 
   return (
     <Card>

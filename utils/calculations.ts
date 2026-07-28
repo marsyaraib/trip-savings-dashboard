@@ -1,5 +1,4 @@
 import type { Payment, MemberMonthSummary, MemberSummary, IndividualStatus } from "@/types";
-import { MEMBER_NAMES, type MemberName } from "@/constants/members";
 import {
   TARGET_PER_PERSON,
   MIN_MONTHLY_PAYMENT,
@@ -13,13 +12,13 @@ export function sumPayments(payments: Payment[]): number {
   return payments.reduce((sum, p) => sum + Number(p.amount), 0);
 }
 
-export function totalByMember(payments: Payment[], member: MemberName): number {
+export function totalByMember(payments: Payment[], member: string): number {
   return sumPayments(payments.filter((p) => p.member_name === member));
 }
 
 export function getMemberMonthSummary(
   payments: Payment[],
-  member: MemberName,
+  member: string,
   month: number,
   year: number
 ): MemberMonthSummary {
@@ -43,14 +42,20 @@ export function getMemberMonthSummary(
 
 export function getAllMemberSummariesForMonth(
   payments: Payment[],
+  memberKeys: string[],
   month: number,
   year: number
 ): MemberMonthSummary[] {
-  return MEMBER_NAMES.map((member) => getMemberMonthSummary(payments, member, month, year));
+  return memberKeys.map((member) => getMemberMonthSummary(payments, member, month, year));
 }
 
-export function isMonthFullyComplete(payments: Payment[], month: number, year: number): boolean {
-  return getAllMemberSummariesForMonth(payments, month, year).every((s) => s.status === "complete");
+export function isMonthFullyComplete(
+  payments: Payment[],
+  memberKeys: string[],
+  month: number,
+  year: number
+): boolean {
+  return getAllMemberSummariesForMonth(payments, memberKeys, month, year).every((s) => s.status === "complete");
 }
 
 /** Number of months elapsed in the program up to and including "now", clamped to the program window. */
@@ -76,7 +81,7 @@ export function getIndividualStatus(totalSaved: number): IndividualStatus {
   return "behind_target";
 }
 
-export function getMemberSummary(payments: Payment[], member: MemberName): MemberSummary {
+export function getMemberSummary(payments: Payment[], member: string): MemberSummary {
   const totalSaved = totalByMember(payments, member);
   return {
     member_name: member,
@@ -87,8 +92,8 @@ export function getMemberSummary(payments: Payment[], member: MemberName): Membe
   };
 }
 
-export function getAllMemberSummaries(payments: Payment[]): MemberSummary[] {
-  return MEMBER_NAMES.map((m) => getMemberSummary(payments, m));
+export function getAllMemberSummaries(payments: Payment[], memberKeys: string[]): MemberSummary[] {
+  return memberKeys.map((m) => getMemberSummary(payments, m));
 }
 
 export const STATUS_LABEL: Record<IndividualStatus, string> = {

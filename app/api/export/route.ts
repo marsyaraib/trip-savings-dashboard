@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
-import { MEMBER_NAMES } from "@/constants/members";
-import { TARGET_GROUP, getAllProgramMonths } from "@/constants/savings";
+import { getMember } from "@/constants/members";
+import { getTargetGroup, getAllProgramMonths } from "@/constants/savings";
 import {
   getAllMemberSummaries,
   getMemberMonthSummary,
@@ -46,6 +46,26 @@ export async function GET() {
   }
   const payments = (data ?? []) as Payment[];
 
+  const { data: memberRows, error: membersError } = await admin
+    .from("members")
+    .select("*")
+    .order("sort_order", { ascending: true });
+  if (membersError) {
+    return NextResponse.json({ error: membersError.message }, { status: 500 });
+  }
+  const members = (memberRows ?? []).map((row) => ({
+    key: row.key,
+    displayName: row.display_name,
+    photoUrl: row.photo_url,
+    initials: row.initials,
+    colorClass: row.color_class,
+    ringClass: row.ring_class,
+    hex: row.hex,
+  }));
+  const memberKeys = members.map((m) => m.key);
+  const targetGroup = getTargetGroup(members.length);
+  const displayName = (key: string) => getMember(members, key)?.displayName ?? key;
+
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Overseas Trip Savings Dashboard";
   workbook.created = new Date();
@@ -60,11 +80,11 @@ export async function GET() {
   summarySheet.addRow([]);
   const summaryHeaderRow = summarySheet.addRow(["Keterangan", "Nilai"]);
   styleHeaderRow(summaryHeaderRow);
-  summarySheet.addRow(["Target Kelompok", TARGET_GROUP]).getCell(2).numFmt = CURRENCY_FORMAT;
+  summarySheet.addRow(["Target Kelompok", targetGroup]).getCell(2).numFmt = CURRENCY_FORMAT;
   summarySheet.addRow(["Total Terkumpul", totalCollected]).getCell(2).numFmt = CURRENCY_FORMAT;
-  summarySheet.addRow(["Sisa", Math.max(0, TARGET_GROUP - totalCollected)]).getCell(2).numFmt =
+  summarySheet.addRow(["Sisa", Math.max(0, targetGroup - totalCollected)]).getCell(2).numFmt =
     CURRENCY_FORMAT;
-  summarySheet.addRow(["Persentase", `${((totalCollected / TARGET_GROUP) * 100).toFixed(1)}%`]);
+  summarySheet.addRow(["Persentase", `${targetGroup > 0 ? ((totalCollected / targetGroup) * 100).toFixed(1) : "0.0"}%`]);
   summarySheet.addRow(["Jumlah Transaksi", payments.length]);
   summarySheet.views = [{ state: "frozen", ySplit: 3 }];
   summarySheet.autoFilter = { from: "A3", to: "B3" };
@@ -78,9 +98,9 @@ export async function GET() {
     "Nama", "Total Tabungan", "Target", "Sisa", "Persentase", "Status",
   ]);
   styleHeaderRow(progressHeader);
-  for (const summary of getAllMemberSummaries(payments)) {
+  for (const summary of getAllMemberSummaries(payments, memberKeys)) {
     const row = progressSheet.addRow([
-      summary.member_name,
+      displayName(summary.member_name),
       summary.totalSaved,
       summary.target,
       Math.max(0, summary.target - summary.totalSaved),
@@ -110,7 +130,7 @@ export async function GET() {
   for (const p of payments) {
     const row = historySheet.addRow([
       new Date(p.payment_date),
-      p.member_name,
+      displayName(p.member_name),
       monthNameID(p.payment_month),
       p.payment_year,
       Number(p.amount),
@@ -128,10 +148,10 @@ export async function GET() {
   // Sheet 4: Monthly Status
   // ---------------------------------------------------------------------
   const monthlySheet = workbook.addWorksheet("Monthly Status");
-  const monthlyHeader = monthlySheet.addRow(["Bulan", ...MEMBER_NAMES]);
+  const monthlyHeader = monthlySheet.addRow(["Bulan", ...members.map((m) => m.displayName)]);
   styleHeaderRow(monthlyHeader);
   for (const { month, year } of getAllProgramMonths()) {
-    const cells = MEMBER_NAMES.map((member) => {
+    const cells = memberKeys.map((member) => {
       const s = getMemberMonthSummary(payments, member, month, year);
       if (s.status === "complete") return "Lunas";
       if (s.status === "in_progress") return `Kurang ${s.remaining.toLocaleString("id-ID")}`;
@@ -140,7 +160,8 @@ export async function GET() {
     monthlySheet.addRow([`${monthNameID(month)} ${year}`, ...cells]);
   }
   monthlySheet.views = [{ state: "frozen", ySplit: 1 }];
-  monthlySheet.autoFilter = { from: "A1", to: "E1" };
+  const monthlyLastCol = String.fromCharCode(65 + members.length); // "A" + 1 col per member
+  monthlySheet.autoFilter = { from: "A1", to: `${monthlyLastCol}1` };
   autoWidth(monthlySheet);
 
   // ---------------------------------------------------------------------
@@ -164,9 +185,13 @@ export async function GET() {
   const contribHeader = statsSheet.addRow(["Kontribusi per Anggota", "Total", "Persentase"]);
   styleHeaderRow(contribHeader);
   const total = sumPayments(payments) || 1;
-  for (const member of MEMBER_NAMES) {
-    const memberTotal = sumPayments(payments.filter((p) => p.member_name === member));
-    const row = statsSheet.addRow([member, memberTotal, `${((memberTotal / total) * 100).toFixed(1)}%`]);
+  for (const member of members) {
+    const memberTotal = sumPayments(payments.filter((p) => p.member_name === member.key));
+    const row = statsSheet.addRow([
+      member.displayName,
+      memberTotal,
+      `${((memberTotal / total) * 100).toFixed(1)}%`,
+    ]);
     row.getCell(2).numFmt = CURRENCY_FORMAT;
   }
   statsSheet.views = [{ state: "frozen", ySplit: 1 }];

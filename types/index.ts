@@ -1,8 +1,6 @@
-import type { MemberName } from "@/constants/members";
-
 export interface Payment {
   id: string;
-  member_name: MemberName;
+  member_name: string;
   payment_month: number;
   payment_year: number;
   payment_date: string; // ISO date (yyyy-mm-dd)
@@ -25,7 +23,7 @@ export interface ActivityLog {
   id: string;
   activity: string;
   activity_type: ActivityType;
-  member_name: MemberName | null;
+  member_name: string | null;
   created_at: string;
 }
 
@@ -34,7 +32,7 @@ export type NewActivityLog = Omit<ActivityLog, "id" | "created_at">;
 export type MonthlyPaymentStatus = "complete" | "in_progress" | "empty";
 
 export interface MemberMonthSummary {
-  member_name: MemberName;
+  member_name: string;
   month: number;
   year: number;
   totalPaid: number;
@@ -46,7 +44,7 @@ export interface MemberMonthSummary {
 export type IndividualStatus = "on_track" | "almost_there" | "behind_target";
 
 export interface MemberSummary {
-  member_name: MemberName;
+  member_name: string;
   totalSaved: number;
   target: number;
   percentage: number;
@@ -57,11 +55,11 @@ export interface AchievementEarned {
   id: string;
   badge: string;
   label: string;
-  member_name: MemberName;
+  member_name: string;
 }
 
 export interface PaginationFilter {
-  memberName?: MemberName | "all";
+  memberName?: string | "all";
   month?: number | "all";
   year?: number | "all";
   query?: string;

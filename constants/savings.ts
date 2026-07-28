@@ -3,8 +3,12 @@
  */
 
 export const TARGET_PER_PERSON = 10_000_000;
-export const TARGET_GROUP = 40_000_000;
 export const MIN_MONTHLY_PAYMENT = 500_000;
+
+/** Group target scales with however many members are currently active. */
+export function getTargetGroup(memberCount: number): number {
+  return memberCount * TARGET_PER_PERSON;
+}
 
 // Saving window: May 2026 - December 2027 (inclusive)
 export const START_MONTH = 5; // May

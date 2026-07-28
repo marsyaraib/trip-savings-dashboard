@@ -3,9 +3,17 @@
 import { motion } from "framer-motion";
 import { TRIP_DEADLINE } from "@/constants/savings";
 import { daysUntil } from "@/lib/utils";
+import type { Member } from "@/constants/members";
 
-export function HeroSection() {
+function joinNames(names: string[]): string {
+  if (names.length === 0) return "";
+  if (names.length === 1) return names[0];
+  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
+}
+
+export function HeroSection({ members }: { members: Member[] }) {
   const days = daysUntil(TRIP_DEADLINE);
+  const names = joinNames(members.map((m) => m.displayName));
 
   return (
     <motion.section
@@ -23,7 +31,7 @@ export function HeroSection() {
             ✈️ Overseas Trip Savings
           </h1>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Fafa, Febi, Nadine &amp; Marsya menabung bersama untuk perjalanan ke luar negeri.
+            {names} menabung bersama untuk perjalanan ke luar negeri.
           </p>
         </div>
 

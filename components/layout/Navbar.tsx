@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, PlusCircle, History, BarChart3, Plane } from "lucide-react";
+import { LayoutDashboard, PlusCircle, History, BarChart3, Users, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: "/add", label: "Tambah", icon: PlusCircle },
   { href: "/history", label: "Riwayat", icon: History },
   { href: "/statistics", label: "Statistik", icon: BarChart3 },
+  { href: "/members", label: "Anggota", icon: Users },
 ];
 
 export function Navbar() {
