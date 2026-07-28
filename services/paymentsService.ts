@@ -124,6 +124,110 @@ export async function addTransaction(
   return { payment, achievements, monthJustCompleted };
 }
 
+export interface AddMultiMonthTransactionInput {
+  memberName: MemberName;
+  months: { month: number; year: number }[];
+  amountPerMonth: number;
+  paymentDate: string;
+  note: string;
+  proofFile: File | null;
+}
+
+export interface AddMultiMonthTransactionResult {
+  payments: Payment[];
+  achievements: AchievementEarned[];
+  monthsJustCompleted: { month: number; year: number }[];
+}
+
+/**
+ * Same as addTransaction, but settles several consecutive months in one go —
+ * one payment row per month, all sharing the same date/note/proof. Achievement
+ * and month-completion checks run cumulatively so milestones crossed partway
+ * through the batch are still detected correctly.
+ */
+export async function addMultiMonthTransaction(
+  input: AddMultiMonthTransactionInput,
+  existingPayments: Payment[]
+): Promise<AddMultiMonthTransactionResult> {
+  let proofUrl: string | null = null;
+  if (input.proofFile) {
+    proofUrl = await uploadProofFile(input.proofFile, input.memberName);
+  }
+
+  let runningPayments = [...existingPayments];
+  const insertedPayments: Payment[] = [];
+  const achievements: AchievementEarned[] = [];
+  const monthsJustCompleted: { month: number; year: number }[] = [];
+  const logs: NewActivityLog[] = [];
+
+  for (const { month, year } of input.months) {
+    const newRow: NewPayment = {
+      member_name: input.memberName,
+      payment_month: month,
+      payment_year: year,
+      payment_date: input.paymentDate,
+      amount: input.amountPerMonth,
+      note: input.note || null,
+      proof_image_url: proofUrl,
+    };
+
+    const { data, error } = await supabase.from("payments").insert([newRow]).select().single();
+    if (error) {
+      throw new Error(`Gagal menyimpan transaksi untuk ${monthNameID(month)} ${year}: ${error.message}`);
+    }
+    const payment = data as Payment;
+    insertedPayments.push(payment);
+
+    const previousTotal = totalByMember(runningPayments, input.memberName);
+    const newTotal = previousTotal + input.amountPerMonth;
+    const newAchievements = detectNewMilestones(previousTotal, newTotal, input.memberName);
+    achievements.push(...newAchievements);
+
+    const wasMonthCompleteBefore = isMonthFullyComplete(runningPayments, month, year);
+    const isMonthCompleteAfter = isMonthFullyComplete([...runningPayments, payment], month, year);
+    const monthJustCompleted = !wasMonthCompleteBefore && isMonthCompleteAfter;
+    if (monthJustCompleted) monthsJustCompleted.push({ month, year });
+
+    logs.push({
+      activity: `${input.memberName} menambahkan ${formatCurrency(input.amountPerMonth)} untuk bulan ${monthNameID(
+        month
+      )} ${year}`,
+      activity_type: "payment_added",
+      member_name: input.memberName,
+    });
+
+    for (const a of newAchievements) {
+      logs.push({
+        activity: a.label,
+        activity_type: a.badge === "🏆" ? "target_completed" : "milestone_reached",
+        member_name: input.memberName,
+      });
+    }
+
+    if (monthJustCompleted) {
+      logs.push({
+        activity: `Semua anggota menyelesaikan target bulan ${monthNameID(month)} ${year} 🎉`,
+        activity_type: "month_completed",
+        member_name: null,
+      });
+    }
+
+    runningPayments = [...runningPayments, payment];
+  }
+
+  if (proofUrl) {
+    logs.push({
+      activity: `${input.memberName} mengunggah bukti transfer untuk ${input.months.length} bulan sekaligus`,
+      activity_type: "proof_uploaded",
+      member_name: input.memberName,
+    });
+  }
+
+  await logActivities(logs);
+
+  return { payments: insertedPayments, achievements, monthsJustCompleted };
+}
+
 export async function editPayment(
   id: string,
   pin: string,
