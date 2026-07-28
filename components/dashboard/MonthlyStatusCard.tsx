@@ -11,20 +11,23 @@ const STATUS_META = {
   complete: {
     icon: "✔",
     label: "Lunas",
-    className:
-      "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/30",
+    cardClassName:
+      "bg-amber-50 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/30",
+    pillClassName: "bg-amber-500 text-amber-950",
   },
   in_progress: {
     icon: "⏳",
     label: "Kurang",
-    className:
-      "bg-lacquer-50 text-lacquer-700 border-lacquer-200 dark:bg-lacquer-500/10 dark:text-lacquer-400 dark:border-lacquer-500/30",
+    cardClassName:
+      "bg-lacquer-50 border-lacquer-200 dark:bg-lacquer-500/10 dark:border-lacquer-500/30",
+    pillClassName: "bg-lacquer-600 text-white",
   },
   empty: {
     icon: "✕",
     label: "Belum Bayar",
-    className:
-      "bg-slate-50 text-slate-500 border-slate-200 dark:bg-slate-900 dark:text-slate-500 dark:border-slate-800",
+    cardClassName:
+      "bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-800",
+    pillClassName: "bg-slate-600 text-white",
   },
 } as const;
 
@@ -49,12 +52,17 @@ export function MonthlyStatusCard({ payments, members }: { payments: Payment[]; 
             return (
               <div
                 key={s.member_name}
-                className={cn("flex flex-col items-center gap-2 rounded-xl border px-3 py-3", meta.className)}
+                className={cn("flex flex-col items-center gap-2 rounded-xl border px-3 py-3", meta.cardClassName)}
               >
                 <span className={`text-xs font-medium bg-gradient-to-br ${member?.colorClass} bg-clip-text text-transparent`}>
                   {member?.displayName ?? s.member_name}
                 </span>
-                <span className="flex items-center gap-1 text-xs font-semibold">
+                <span
+                  className={cn(
+                    "flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold shadow-sm",
+                    meta.pillClassName
+                  )}
+                >
                   <span>{meta.icon}</span>
                   {s.status === "in_progress" ? `Kurang ${formatCurrencyCompact(s.remaining)}` : meta.label}
                 </span>
