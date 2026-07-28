@@ -9,7 +9,7 @@ import type { Payment } from "@/types";
 export function GroupProgressRadial({ payments, targetGroup }: { payments: Payment[]; targetGroup: number }) {
   const collected = sumPayments(payments);
   const percentage = targetGroup > 0 ? clampPercentage((collected / targetGroup) * 100) : 0;
-  const data = [{ name: "progress", value: percentage, fill: "#10b981" }];
+  const data = [{ name: "progress", value: percentage, fill: "#f59e0b" }];
 
   return (
     <Card>
@@ -31,7 +31,7 @@ export function GroupProgressRadial({ payments, targetGroup }: { payments: Payme
             </RadialBarChart>
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+            <span className="text-3xl font-bold text-amber-600 dark:text-amber-400">
               {percentage.toFixed(1)}%
             </span>
             <span className="mt-1 text-xs text-slate-400">{formatCurrency(collected)}</span>

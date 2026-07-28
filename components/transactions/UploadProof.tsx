@@ -105,8 +105,8 @@ export function UploadProof({ file, onChange, error }: UploadProofProps) {
         className={cn(
           "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors",
           isDragActive
-            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10"
-            : "border-slate-200 hover:border-emerald-400 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900"
+            ? "border-lacquer-500 bg-lacquer-50 dark:bg-lacquer-500/10"
+            : "border-slate-200 hover:border-lacquer-400 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900"
         )}
       >
         <input {...getInputProps()} />

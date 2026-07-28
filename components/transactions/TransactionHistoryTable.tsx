@@ -236,7 +236,7 @@ function ProofLink({ url }: { url: string | null }) {
           unoptimized
         />
       ) : (
-        <FileText className="h-5 w-5 text-emerald-600" />
+        <FileText className="h-5 w-5 text-lacquer-600" />
       )}
     </a>
   );
@@ -255,7 +255,7 @@ function RowActions({
     <div className={`flex items-center gap-1 ${align === "right" ? "justify-end" : ""}`}>
       <button
         onClick={onEdit}
-        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-emerald-600 dark:hover:bg-slate-800"
+        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-lacquer-600 dark:hover:bg-slate-800"
         aria-label="Ubah transaksi"
       >
         <Pencil className="h-4 w-4" />

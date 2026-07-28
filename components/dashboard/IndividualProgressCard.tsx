@@ -28,7 +28,7 @@ export function IndividualProgressCard({ summary, members }: { summary: MemberSu
               {STATUS_EMOJI[summary.status]} {STATUS_LABEL[summary.status]}
             </p>
           </div>
-          <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+          <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">
             {percentage.toFixed(0)}%
           </span>
         </div>

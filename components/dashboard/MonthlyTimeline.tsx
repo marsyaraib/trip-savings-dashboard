@@ -11,8 +11,8 @@ import type { Payment } from "@/types";
 import type { Member } from "@/constants/members";
 
 const STATUS_STYLE = {
-  complete: "bg-emerald-500 text-white border-emerald-500",
-  in_progress: "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/30",
+  complete: "bg-amber-500 text-white border-amber-500",
+  in_progress: "bg-lacquer-50 text-lacquer-700 border-lacquer-200 dark:bg-lacquer-500/10 dark:text-lacquer-400 dark:border-lacquer-500/30",
   empty: "bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-900 dark:text-slate-600 dark:border-slate-800",
 } as const;
 

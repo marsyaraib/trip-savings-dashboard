@@ -56,9 +56,9 @@ export function MonthlyDetailModal({ monthYear, payments, members, onOpenChange 
                   </p>
                   <p className="text-xs">
                     {s.status === "complete" ? (
-                      <span className="text-emerald-600 dark:text-emerald-400">✔ Lunas</span>
+                      <span className="text-amber-600 dark:text-amber-400">✔ Lunas</span>
                     ) : s.status === "in_progress" ? (
-                      <span className="text-amber-600 dark:text-amber-400">
+                      <span className="text-lacquer-600 dark:text-lacquer-400">
                         Kurang {formatCurrency(s.remaining)}
                       </span>
                     ) : (

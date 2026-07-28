@@ -34,7 +34,7 @@ export function PinDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-emerald-600" />
+            <ShieldCheck className="h-5 w-5 text-lacquer-600" />
             {title}
           </DialogTitle>
           <DialogDescription>{description}</DialogDescription>

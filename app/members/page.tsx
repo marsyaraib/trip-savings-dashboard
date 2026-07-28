@@ -81,7 +81,7 @@ export default function MembersPage() {
               </div>
               <button
                 onClick={() => setPending({ type: "edit", member: m })}
-                className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-emerald-600 dark:hover:bg-slate-800"
+                className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-lacquer-600 dark:hover:bg-slate-800"
                 aria-label={`Ubah profil ${m.displayName}`}
               >
                 <Pencil className="h-4 w-4" />

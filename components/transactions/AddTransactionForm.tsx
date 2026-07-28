@@ -159,7 +159,7 @@ export function AddTransactionForm() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <PlusCircle className="h-5 w-5 text-emerald-600" />
+            <PlusCircle className="h-5 w-5 text-lacquer-600" />
             Tambah Pembayaran
           </CardTitle>
           <CardDescription>Catat pembayaran tabungan untuk salah satu anggota.</CardDescription>
@@ -173,7 +173,7 @@ export function AddTransactionForm() {
                 className={cn(
                   "flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
                   !multiMonth
-                    ? "bg-emerald-500 text-white"
+                    ? "bg-lacquer-500 text-white"
                     : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                 )}
               >
@@ -185,7 +185,7 @@ export function AddTransactionForm() {
                 className={cn(
                   "flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
                   multiMonth
-                    ? "bg-emerald-500 text-white"
+                    ? "bg-lacquer-500 text-white"
                     : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                 )}
               >

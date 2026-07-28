@@ -33,7 +33,7 @@ export function CelebrationModal({ open, achievements, monthCompletedLabel, onCl
           numberOfPieces={350}
           gravity={0.25}
           tweenDuration={6000}
-          colors={["#10b981", "#059669", "#f59e0b", "#fbbf24", "#ffffff"]}
+          colors={["#8e2323", "#a62c2c", "#d9ae55", "#f0cc7a", "#ffffff"]}
           style={{ position: "fixed", inset: 0, zIndex: 100, pointerEvents: "none" }}
         />
       )}
@@ -49,7 +49,7 @@ export function CelebrationModal({ open, achievements, monthCompletedLabel, onCl
               {achievements.map((a) => (
                 <span
                   key={a.id}
-                  className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+                  className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
                 >
                   <span className="text-lg">{a.badge}</span>
                   {a.label}

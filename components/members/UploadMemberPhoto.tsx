@@ -56,8 +56,8 @@ export function UploadMemberPhoto({ file, existingPhotoUrl, onChange }: UploadMe
         className={cn(
           "flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed transition-colors",
           isDragActive
-            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10"
-            : "border-slate-200 hover:border-emerald-400 dark:border-slate-800"
+            ? "border-lacquer-500 bg-lacquer-50 dark:bg-lacquer-500/10"
+            : "border-slate-200 hover:border-lacquer-400 dark:border-slate-800"
         )}
       >
         <input {...getInputProps()} />
