@@ -38,18 +38,22 @@ create policy "members_select_all" on public.members
 -- same "zero policies" pattern as admin_settings.
 
 -- ----------------------------------------------------------------------------
--- Backfill existing payments/activity_logs to use the new lowercase keys,
--- THEN swap the old CHECK constraints for a real foreign key.
+-- Drop the old CHECK constraints FIRST (they only allow the capitalized
+-- names and would reject the lowercase backfill below), THEN backfill
+-- existing payments/activity_logs to use the new lowercase keys, THEN add
+-- the real foreign key.
 -- ----------------------------------------------------------------------------
-update public.payments set member_name = lower(member_name);
-update public.activity_logs set member_name = lower(member_name) where member_name is not null;
-
 alter table public.payments drop constraint if exists payments_member_name_check;
 alter table public.activity_logs drop constraint if exists activity_logs_member_name_check;
 
+update public.payments set member_name = lower(member_name);
+update public.activity_logs set member_name = lower(member_name) where member_name is not null;
+
 alter table public.payments
+  drop constraint if exists payments_member_name_fkey,
   add constraint payments_member_name_fkey foreign key (member_name) references public.members(key);
 alter table public.activity_logs
+  drop constraint if exists activity_logs_member_name_fkey,
   add constraint activity_logs_member_name_fkey foreign key (member_name) references public.members(key);
 
 -- ----------------------------------------------------------------------------
